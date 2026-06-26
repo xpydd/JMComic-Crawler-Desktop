@@ -20,3 +20,11 @@ class TestDesktopRuntimeContract(TestCase):
         choose_save_dir_body = html[start:end]
 
         self.assertIn("localStorage.setItem('defaultSaveDir', dir);", choose_save_dir_body)
+
+    def test_album_rendering_is_batched_and_lazy_loads_images(self):
+        root = Path(__file__).parents[2]
+        html = (root / 'tauri-app' / 'src' / 'index.html').read_text(encoding='utf-8')
+
+        self.assertIn('requestAnimationFrame', html)
+        self.assertIn('loading="lazy"', html)
+        self.assertIn('decoding="async"', html)

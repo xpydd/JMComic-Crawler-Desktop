@@ -165,36 +165,67 @@
       return Array.from(document.querySelectorAll('.chapter-check:checked')).map(el => el.value);
     }
 
+    function escapeHtml(value) {
+      const div = document.createElement('div');
+      div.textContent = value == null ? '' : String(value);
+      return div.innerHTML;
+    }
+
+    function renderChapterBatch(chapters, start = 0) {
+      const list = document.getElementById('chapterList');
+      if (!list) return;
+      const batchSize = 30;
+      const batch = chapters.slice(start, start + batchSize);
+      list.insertAdjacentHTML('beforeend', batch.map((c, offset) => {
+        const index = start + offset + 1;
+        const coverUrl = escapeHtml(c.cover_url || '');
+        const title = escapeHtml(c.title || '');
+        const id = escapeHtml(c.id || '');
+        return `
+      <label class="chapter-item">
+        <input class="chapter-check" type="checkbox" value="${id}">
+        <img class="chapter-cover" src="${coverUrl}" alt="章节封面" loading="lazy" decoding="async" data-cover-url="${coverUrl}">
+        <span class="chapter-title">${index}. ${title} (ID: ${id})</span>
+      </label>`;
+      }).join(''));
+      if (start + batchSize < chapters.length) {
+        requestAnimationFrame(() => renderChapterBatch(chapters, start + batchSize));
+      }
+    }
+
     function renderAlbum(data) {
       currentAlbum = data;
-      document.getElementById('result').innerHTML = `
+      const result = document.getElementById('result');
+      const chapters = data.chapters || [];
+      const coverUrl = escapeHtml(data.cover_url || '');
+      result.innerHTML = `
 <div class="cover-grid">
-  <img class="cover" src="${data.cover_url || ''}" alt="本子封面" onclick="openCoverPreview('${data.cover_url || ''}')">
+  <img class="cover" src="${coverUrl}" alt="本子封面" loading="lazy" decoding="async" data-cover-url="${coverUrl}">
   <div>
-    📖 标题: ${data.title}
-    🆔 ID: JM${data.id}
-    ✍️ 作者: ${data.author}
-    👀 观看: ${data.views}
-    ❤️ 点赞: ${data.likes}
-    💬 评论: ${data.comments}
-    📄 页数: ${data.pages}
-    🏷️ 标签: ${(data.tags || []).join(', ')}
+    📖 标题: ${escapeHtml(data.title)}
+    🆔 ID: JM${escapeHtml(data.id)}
+    ✍️ 作者: ${escapeHtml(data.author)}
+    👀 观看: ${escapeHtml(data.views)}
+    ❤️ 点赞: ${escapeHtml(data.likes)}
+    💬 评论: ${escapeHtml(data.comments)}
+    📄 页数: ${escapeHtml(data.pages)}
+    🏷️ 标签: ${escapeHtml((data.tags || []).join(', '))}
   </div>
 </div>
 
 <div style="margin-top:12px;">
-  <strong>📑 章节列表 (${data.chapters.length})</strong>
+  <strong>📑 章节列表 (${chapters.length})</strong>
   <button class="btn-secondary" onclick="downloadSelectedChapters()" style="margin-left:8px;">批量下载已选章节</button>
-  <div class="chapter-list">
-    ${data.chapters.map((c, i) => `
-      <label class="chapter-item">
-        <input class="chapter-check" type="checkbox" value="${c.id}">
-        <img class="chapter-cover" src="${c.cover_url || ''}" alt="章节封面" onclick="event.preventDefault(); openCoverPreview('${c.cover_url || ''}')">
-        <span class="chapter-title">${i + 1}. ${c.title} (ID: ${c.id})</span>
-      </label>
-    `).join('')}
-  </div>
+  <div class="chapter-list" id="chapterList"></div>
 </div>`;
+      result.onclick = (event) => {
+        const coverUrl = event.target.dataset.coverUrl;
+        if (coverUrl) {
+          event.preventDefault();
+          openCoverPreview(coverUrl);
+        }
+      };
+      renderChapterBatch(chapters);
     }
 
     async function viewAlbum() {
