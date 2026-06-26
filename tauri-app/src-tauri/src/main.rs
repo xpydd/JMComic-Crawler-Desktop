@@ -2,6 +2,9 @@
 
 use serde::{Deserialize, Serialize};
 use std::process::Command;
+use tauri::api::dialog::blocking::FileDialogBuilder;
+
+const BRIDGE_RESOURCE: &str = "../../tauri-app/dist/jmcomic-bridge";
 
 #[derive(Serialize, Deserialize)]
 struct DownloadResult {
@@ -27,16 +30,19 @@ fn parse_download_output(output: std::process::Output) -> DownloadResult {
     }
 }
 
+fn bridge_resource_path(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
+    app.path_resolver()
+        .resolve_resource(BRIDGE_RESOURCE)
+        .ok_or_else(|| format!("Failed to resolve resource path: {}", BRIDGE_RESOURCE))
+}
+
 #[tauri::command]
 fn download_album(
     album_id: String,
     save_dir: Option<String>,
     app: tauri::AppHandle,
 ) -> Result<DownloadResult, String> {
-    let resource_path = app
-        .path_resolver()
-        .resolve_resource("dist/jmcomic-bridge")
-        .ok_or("Failed to resolve resource path")?;
+    let resource_path = bridge_resource_path(&app)?;
     let mut cmd = Command::new(&resource_path);
     cmd.arg("download").arg(&album_id);
     if let Some(dir) = save_dir {
@@ -53,10 +59,7 @@ fn download_chapter(
     save_dir: Option<String>,
     app: tauri::AppHandle,
 ) -> Result<DownloadResult, String> {
-    let resource_path = app
-        .path_resolver()
-        .resolve_resource("dist/jmcomic-bridge")
-        .ok_or("Failed to resolve resource path")?;
+    let resource_path = bridge_resource_path(&app)?;
     let mut cmd = Command::new(&resource_path);
     cmd.arg("download_chapter").arg(&chapter_id);
     if let Some(dir) = save_dir {
@@ -68,11 +71,25 @@ fn download_chapter(
 }
 
 #[tauri::command]
+fn download_chapters(
+    chapter_ids: String,
+    save_dir: Option<String>,
+    app: tauri::AppHandle,
+) -> Result<DownloadResult, String> {
+    let resource_path = bridge_resource_path(&app)?;
+    let mut cmd = Command::new(&resource_path);
+    cmd.arg("download_chapters").arg(&chapter_ids);
+    if let Some(dir) = save_dir {
+        cmd.arg(&dir);
+    }
+    let output = cmd.output().map_err(|e| e.to_string())?;
+
+    Ok(parse_download_output(output))
+}
+
+#[tauri::command]
 fn view_album(album_id: String, app: tauri::AppHandle) -> Result<String, String> {
-    let resource_path = app
-        .path_resolver()
-        .resolve_resource("dist/jmcomic-bridge")
-        .ok_or("Failed to resolve resource path")?;
+    let resource_path = bridge_resource_path(&app)?;
     let output = Command::new(&resource_path)
         .arg("view")
         .arg(&album_id)
@@ -82,12 +99,21 @@ fn view_album(album_id: String, app: tauri::AppHandle) -> Result<String, String>
     Ok(String::from_utf8_lossy(&output.stdout).to_string())
 }
 
+#[tauri::command]
+fn choose_save_dir() -> Option<String> {
+    FileDialogBuilder::new()
+        .pick_folder()
+        .map(|path| path.to_string_lossy().to_string())
+}
+
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             download_album,
             download_chapter,
-            view_album
+            download_chapters,
+            view_album,
+            choose_save_dir
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

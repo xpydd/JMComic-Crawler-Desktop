@@ -135,7 +135,11 @@
     async function chooseSaveDir() {
       try {
         const dir = await window.__TAURI__.tauri.invoke('choose_save_dir');
-        if (dir) document.getElementById('defaultSaveDir').value = dir;
+        if (dir) {
+          document.getElementById('defaultSaveDir').value = dir;
+          localStorage.setItem('defaultSaveDir', dir);
+          log(`默认保存目录已设置: ${dir}`, 'success');
+        }
       } catch (e) {
         log(`选择目录失败: ${e}`, 'error');
       }
