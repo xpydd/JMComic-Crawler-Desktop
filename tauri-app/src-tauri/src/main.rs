@@ -2,7 +2,6 @@
 
 use serde::{Deserialize, Serialize};
 use std::process::{Command, Output};
-use tauri::api::dialog::blocking::FileDialogBuilder;
 
 const BRIDGE_RESOURCE: &str = "../../tauri-app/dist/jmcomic-bridge";
 
@@ -130,13 +129,6 @@ async fn view_album(album_id: String, app: tauri::AppHandle) -> Result<String, S
     Ok(parse_view_output(output))
 }
 
-#[tauri::command]
-fn choose_save_dir() -> Option<String> {
-    FileDialogBuilder::new()
-        .pick_folder()
-        .map(|path| path.to_string_lossy().to_string())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -173,8 +165,7 @@ fn main() {
             download_album,
             download_chapter,
             download_chapters,
-            view_album,
-            choose_save_dir
+            view_album
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

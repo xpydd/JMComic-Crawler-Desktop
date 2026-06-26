@@ -134,7 +134,11 @@
 
     async function chooseSaveDir() {
       try {
-        const dir = await window.__TAURI__.tauri.invoke('choose_save_dir');
+        const selected = await window.__TAURI__.dialog.open({
+          directory: true,
+          multiple: false
+        });
+        const dir = Array.isArray(selected) ? selected[0] : selected;
         if (dir) {
           document.getElementById('defaultSaveDir').value = dir;
           localStorage.setItem('defaultSaveDir', dir);

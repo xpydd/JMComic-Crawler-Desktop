@@ -21,6 +21,20 @@ class TestDesktopRuntimeContract(TestCase):
 
         self.assertIn("localStorage.setItem('defaultSaveDir', dir);", choose_save_dir_body)
 
+    def test_save_dir_picker_uses_frontend_dialog_api(self):
+        root = Path(__file__).parents[2]
+        html = (root / 'tauri-app' / 'src' / 'index.html').read_text(encoding='utf-8')
+        main_rs = (root / 'tauri-app' / 'src-tauri' / 'src' / 'main.rs').read_text(encoding='utf-8')
+        start = html.index('async function chooseSaveDir()')
+        end = html.index('function getSaveDir()')
+        choose_save_dir_body = html[start:end]
+
+        self.assertIn('window.__TAURI__.dialog.open', choose_save_dir_body)
+        self.assertIn('directory: true', choose_save_dir_body)
+        self.assertNotIn("tauri.invoke('choose_save_dir')", choose_save_dir_body)
+        self.assertNotIn('blocking::FileDialogBuilder', main_rs)
+        self.assertNotIn('fn choose_save_dir', main_rs)
+
     def test_album_rendering_is_batched_and_lazy_loads_images(self):
         root = Path(__file__).parents[2]
         html = (root / 'tauri-app' / 'src' / 'index.html').read_text(encoding='utf-8')
