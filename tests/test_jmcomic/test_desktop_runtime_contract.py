@@ -74,3 +74,23 @@ class TestDesktopRuntimeContract(TestCase):
         self.assertIn('function beginLoading()', html)
         self.assertIn('if (isBusy) return false;', html)
         self.assertIn('if (!beginLoading()) return;', html)
+
+    def test_frontend_uses_sidebar_workspace_layout(self):
+        root = Path(__file__).parents[2]
+        html = (root / 'tauri-app' / 'src' / 'index.html').read_text(encoding='utf-8')
+
+        self.assertIn('class="app-shell"', html)
+        self.assertIn('class="sidebar"', html)
+        self.assertIn('class="workspace-grid"', html)
+        self.assertIn('class="side-panel"', html)
+        self.assertIn('class="command-card primary-flow"', html)
+
+    def test_frontend_uses_accessible_svg_icons_not_emoji(self):
+        root = Path(__file__).parents[2]
+        html = (root / 'tauri-app' / 'src' / 'index.html').read_text(encoding='utf-8')
+
+        self.assertIn('<svg', html)
+        self.assertIn('aria-label="打开设置"', html)
+        self.assertIn('aria-hidden="true"', html)
+        for emoji in ['📚', '⚙️', '🔍', '⬇️', '📄', '📋', '⏳', '✅', '❌']:
+            self.assertNotIn(emoji, html)
