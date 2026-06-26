@@ -1,7 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use serde::{Deserialize, Serialize};
-use std::process::Command;
+use std::process::{Command, Output};
 use tauri::api::dialog::blocking::FileDialogBuilder;
 
 const BRIDGE_RESOURCE: &str = "../../tauri-app/dist/jmcomic-bridge";
@@ -67,65 +67,65 @@ fn bridge_resource_path(app: &tauri::AppHandle) -> Result<std::path::PathBuf, St
         .ok_or_else(|| format!("Failed to resolve resource path: {}", BRIDGE_RESOURCE))
 }
 
+async fn run_bridge(app: tauri::AppHandle, args: Vec<String>) -> Result<Output, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let resource_path = bridge_resource_path(&app)?;
+        let mut cmd = Command::new(&resource_path);
+        cmd.args(args);
+        cmd.output().map_err(|e| e.to_string())
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+fn push_save_dir_arg(args: &mut Vec<String>, save_dir: Option<String>) {
+    if let Some(dir) = save_dir.filter(|dir| !dir.trim().is_empty()) {
+        args.push(dir);
+    }
+}
+
 #[tauri::command]
-fn download_album(
+async fn download_album(
     album_id: String,
     save_dir: Option<String>,
     app: tauri::AppHandle,
 ) -> Result<DownloadResult, String> {
-    let resource_path = bridge_resource_path(&app)?;
-    let mut cmd = Command::new(&resource_path);
-    cmd.arg("download").arg(&album_id);
-    if let Some(dir) = save_dir {
-        cmd.arg(&dir);
-    }
-    let output = cmd.output().map_err(|e| e.to_string())?;
+    let mut args = vec!["download".to_string(), album_id];
+    push_save_dir_arg(&mut args, save_dir);
+    let output = run_bridge(app, args).await?;
 
     Ok(parse_download_output(output))
 }
 
 #[tauri::command]
-fn download_chapter(
+async fn download_chapter(
     chapter_id: String,
     save_dir: Option<String>,
     app: tauri::AppHandle,
 ) -> Result<DownloadResult, String> {
-    let resource_path = bridge_resource_path(&app)?;
-    let mut cmd = Command::new(&resource_path);
-    cmd.arg("download_chapter").arg(&chapter_id);
-    if let Some(dir) = save_dir {
-        cmd.arg(&dir);
-    }
-    let output = cmd.output().map_err(|e| e.to_string())?;
+    let mut args = vec!["download_chapter".to_string(), chapter_id];
+    push_save_dir_arg(&mut args, save_dir);
+    let output = run_bridge(app, args).await?;
 
     Ok(parse_download_output(output))
 }
 
 #[tauri::command]
-fn download_chapters(
+async fn download_chapters(
     chapter_ids: String,
     save_dir: Option<String>,
     app: tauri::AppHandle,
 ) -> Result<DownloadResult, String> {
-    let resource_path = bridge_resource_path(&app)?;
-    let mut cmd = Command::new(&resource_path);
-    cmd.arg("download_chapters").arg(&chapter_ids);
-    if let Some(dir) = save_dir {
-        cmd.arg(&dir);
-    }
-    let output = cmd.output().map_err(|e| e.to_string())?;
+    let mut args = vec!["download_chapters".to_string(), chapter_ids];
+    push_save_dir_arg(&mut args, save_dir);
+    let output = run_bridge(app, args).await?;
 
     Ok(parse_download_output(output))
 }
 
 #[tauri::command]
-fn view_album(album_id: String, app: tauri::AppHandle) -> Result<String, String> {
-    let resource_path = bridge_resource_path(&app)?;
-    let output = Command::new(&resource_path)
-        .arg("view")
-        .arg(&album_id)
-        .output()
-        .map_err(|e| e.to_string())?;
+async fn view_album(album_id: String, app: tauri::AppHandle) -> Result<String, String> {
+    let output = run_bridge(app, vec!["view".to_string(), album_id]).await?;
 
     Ok(parse_view_output(output))
 }

@@ -28,3 +28,18 @@ class TestDesktopRuntimeContract(TestCase):
         self.assertIn('requestAnimationFrame', html)
         self.assertIn('loading="lazy"', html)
         self.assertIn('decoding="async"', html)
+
+    def test_bridge_commands_run_off_the_tauri_command_thread(self):
+        root = Path(__file__).parents[2]
+        main_rs = (root / 'tauri-app' / 'src-tauri' / 'src' / 'main.rs').read_text(encoding='utf-8')
+
+        self.assertIn('spawn_blocking', main_rs)
+        self.assertIn('async fn download_album', main_rs)
+        self.assertIn('async fn view_album', main_rs)
+
+    def test_frontend_truncates_noisy_messages(self):
+        root = Path(__file__).parents[2]
+        html = (root / 'tauri-app' / 'src' / 'index.html').read_text(encoding='utf-8')
+
+        self.assertIn('function formatMessage', html)
+        self.assertIn('max = 1200', html)

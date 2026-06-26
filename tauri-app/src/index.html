@@ -103,7 +103,7 @@
       const logs = document.getElementById('logs');
       const time = new Date().toLocaleTimeString();
       const colors = { info: 'log-info', error: 'log-error', success: 'log-success' };
-      logs.innerHTML += `<div class="log-entry ${colors[type]}">[${time}] ${message}</div>`;
+      logs.innerHTML += `<div class="log-entry ${colors[type]}">[${time}] ${escapeHtml(formatMessage(message, 700))}</div>`;
       logs.scrollTop = logs.scrollHeight;
     }
 
@@ -169,6 +169,16 @@
       const div = document.createElement('div');
       div.textContent = value == null ? '' : String(value);
       return div.innerHTML;
+    }
+
+    function formatMessage(message, max = 1200) {
+      const text = message == null ? '' : String(message);
+      if (text.length <= max) return text;
+      return `${text.slice(0, max)}\n...（已省略 ${text.length - max} 个字符）`;
+    }
+
+    function showResult(message) {
+      document.getElementById('result').textContent = formatMessage(message);
     }
 
     function renderChapterBatch(chapters, start = 0) {
@@ -237,14 +247,14 @@
         const result = await window.__TAURI__.tauri.invoke('view_album', { albumId });
         const data = JSON.parse(result);
         if (data.error) {
-          document.getElementById('result').innerHTML = `❌ 错误: ${data.error}`;
+          showResult(`❌ 错误: ${data.error}`);
           log(`查看失败: ${data.error}`, 'error');
         } else {
           renderAlbum(data);
           log(`查看成功: ${data.title}`, 'success');
         }
       } catch (e) {
-        document.getElementById('result').innerHTML = `❌ 错误: ${e}`;
+        showResult(`❌ 错误: ${e}`);
         log(`查看异常: ${e}`, 'error');
       }
       setLoading(false);
@@ -260,14 +270,14 @@
       try {
         const result = await window.__TAURI__.tauri.invoke('download_album', { albumId, saveDir });
         if (result.success) {
-          document.getElementById('result').innerHTML = `✅ ${result.message}`;
+          showResult(`✅ ${result.message}`);
           log(`下载完成`, 'success');
         } else {
-          document.getElementById('result').innerHTML = `❌ 下载失败:\n${result.message}`;
+          showResult(`❌ 下载失败:\n${result.message}`);
           log(`下载失败: ${result.message}`, 'error');
         }
       } catch (e) {
-        document.getElementById('result').innerHTML = `❌ 错误: ${e}`;
+        showResult(`❌ 错误: ${e}`);
         log(`下载异常: ${e}`, 'error');
       }
       setLoading(false);
@@ -284,14 +294,14 @@
       try {
         const result = await window.__TAURI__.tauri.invoke('download_chapter', { chapterId, saveDir });
         if (result.success) {
-          document.getElementById('result').innerHTML = `✅ ${result.message}`;
+          showResult(`✅ ${result.message}`);
           log(`章节下载完成`, 'success');
         } else {
-          document.getElementById('result').innerHTML = `❌ 下载失败:\n${result.message}`;
+          showResult(`❌ 下载失败:\n${result.message}`);
           log(`章节下载失败: ${result.message}`, 'error');
         }
       } catch (e) {
-        document.getElementById('result').innerHTML = `❌ 错误: ${e}`;
+        showResult(`❌ 错误: ${e}`);
         log(`下载异常: ${e}`, 'error');
       }
       setLoading(false);
@@ -306,14 +316,14 @@
       try {
         const result = await window.__TAURI__.tauri.invoke('download_chapters', { chapterIds: chapterIds.join(','), saveDir });
         if (result.success) {
-          document.getElementById('result').innerHTML = `✅ ${result.message}`;
+          showResult(`✅ ${result.message}`);
           log('批量下载完成', 'success');
         } else {
-          document.getElementById('result').innerHTML = `❌ 批量下载失败:\n${result.message}`;
+          showResult(`❌ 批量下载失败:\n${result.message}`);
           log(`批量下载失败: ${result.message}`, 'error');
         }
       } catch (e) {
-        document.getElementById('result').innerHTML = `❌ 错误: ${e}`;
+        showResult(`❌ 错误: ${e}`);
         log(`批量下载异常: ${e}`, 'error');
       }
       setLoading(false);
