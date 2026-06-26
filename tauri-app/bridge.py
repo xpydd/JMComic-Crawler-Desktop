@@ -12,7 +12,7 @@ import jmcomic
 
 
 def default_save_dir():
-    path = Path.home() / 'Downloads' / 'JMComic'
+    path = Path.home() / 'Desktop'
     path.mkdir(parents=True, exist_ok=True)
     return str(path)
 
@@ -26,11 +26,12 @@ def make_option(save_dir=None):
 
 
 def normalize_ids(raw_ids):
-    return [
+    ids = [
         item[1:] if item.lower().startswith(('p', 'a')) else item
         for item in re.split(r'[\s,，]+', raw_ids.strip())
         if item
     ]
+    return list(dict.fromkeys(ids))
 
 
 def emit_json(func, *args):

@@ -57,3 +57,20 @@ class TestDesktopRuntimeContract(TestCase):
 
         self.assertIn('function formatMessage', html)
         self.assertIn('max = 1200', html)
+
+    def test_download_confirms_only_when_save_dir_is_missing(self):
+        root = Path(__file__).parents[2]
+        html = (root / 'tauri-app' / 'src' / 'index.html').read_text(encoding='utf-8')
+
+        self.assertIn('function shouldConfirmDownload(saveDir)', html)
+        self.assertIn('return !saveDir;', html)
+        self.assertIn('shouldConfirmDownload(saveDir) && !confirm', html)
+
+    def test_download_actions_guard_against_duplicate_submits(self):
+        root = Path(__file__).parents[2]
+        html = (root / 'tauri-app' / 'src' / 'index.html').read_text(encoding='utf-8')
+
+        self.assertIn('let isBusy = false;', html)
+        self.assertIn('function beginLoading()', html)
+        self.assertIn('if (isBusy) return false;', html)
+        self.assertIn('if (!beginLoading()) return;', html)

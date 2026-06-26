@@ -80,7 +80,21 @@ class TestDesktopBridge(TestCase):
         self.assertEqual(result['success'], True)
         self.assertEqual(called, [('1', '/tmp/jm'), ('2', '/tmp/jm'), ('3', '/tmp/jm')])
 
-    def test_make_option_defaults_to_writable_downloads_dir(self):
+    def test_download_chapters_deduplicates_ids(self):
+        bridge = load_bridge()
+        called = []
+
+        def fake_download_photo(photo_id, option):
+            called.append(photo_id)
+
+        with patch.object(bridge.jmcomic.JmOption, 'default', return_value=FakeOption()), \
+                patch.object(bridge.jmcomic, 'download_photo', side_effect=fake_download_photo):
+            result = bridge.download_chapters('1, 1\np2 p2', '/tmp/jm')
+
+        self.assertEqual(result['success'], True)
+        self.assertEqual(called, ['1', '2'])
+
+    def test_make_option_defaults_to_writable_desktop_dir(self):
         bridge = load_bridge()
 
         with TemporaryDirectory() as home, \
@@ -88,7 +102,7 @@ class TestDesktopBridge(TestCase):
                 patch.object(bridge.Path, 'home', return_value=Path(home)):
             option = bridge.make_option()
 
-            self.assertEqual(option.dir_rule.base_dir, str(Path(home) / 'Downloads' / 'JMComic'))
+            self.assertEqual(option.dir_rule.base_dir, str(Path(home) / 'Desktop'))
             self.assertTrue(Path(option.dir_rule.base_dir).is_dir())
 
     def test_emit_json_keeps_logs_out_of_stdout(self):
