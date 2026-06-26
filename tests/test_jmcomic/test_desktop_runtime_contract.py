@@ -94,3 +94,19 @@ class TestDesktopRuntimeContract(TestCase):
         self.assertIn('aria-hidden="true"', html)
         for emoji in ['📚', '⚙️', '🔍', '⬇️', '📄', '📋', '⏳', '✅', '❌']:
             self.assertNotIn(emoji, html)
+
+    def test_frontend_visible_copy_is_chinese_only(self):
+        root = Path(__file__).parents[2]
+        html = (root / 'tauri-app' / 'src' / 'index.html').read_text(encoding='utf-8')
+
+        for text in ['Desktop crawler', '>Workspace<', '>Album<', '>Chapters<', '>Result<', '>Save path<', '>Activity<', '>Album detail<', '>Chapter list<']:
+            self.assertNotIn(text, html)
+
+    def test_frontend_uses_compact_workspace_spacing(self):
+        root = Path(__file__).parents[2]
+        html = (root / 'tauri-app' / 'src' / 'index.html').read_text(encoding='utf-8')
+
+        self.assertIn('grid-template-columns: 200px minmax(0, 1fr);', html)
+        self.assertIn('padding: 14px;', html)
+        self.assertIn('height: 180px;', html)
+        self.assertIn('min-height: 200px;', html)
