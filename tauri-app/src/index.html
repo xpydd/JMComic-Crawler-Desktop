@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>JMComic桌面版</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f5f5f5; padding: 20px; }
+    .container { max-width: 900px; margin: 0 auto; }
+    .header { position: relative; text-align: center; margin-bottom: 20px; }
+    h1 { color: #333; font-size: 24px; }
+    .settings-btn { position: absolute; right: 0; top: 50%; transform: translateY(-50%); background: #6c757d; color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-size: 18px; }
+    .settings-btn:hover { background: #545b62; }
+    .card { background: white; border-radius: 8px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; margin-bottom: 10px; }
+    button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+    button:hover { background: #0056b3; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn-secondary { background: #6c757d; }
+    .btn-secondary:hover { background: #545b62; }
+    #result { margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 4px; white-space: pre-wrap; font-size: 13px; line-height: 1.6; max-height: 300px; overflow-y: auto; }
+    .loading { display: none; text-align: center; color: #666; margin-top: 10px; }
+    #logs { height: 150px; overflow-y: auto; background: #1e1e1e; color: #d4d4d4; padding: 10px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 12px; }
+    .log-entry { margin: 2px 0; }
+    .log-info { color: #4ec9b0; }
+    .log-error { color: #f48771; }
+    .log-success { color: #b5cea8; }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: white; border-radius: 8px; padding: 24px; width: 480px; max-width: 90vw; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+    .modal h2 { font-size: 18px; margin-bottom: 16px; color: #333; }
+    .modal label { font-size: 13px; color: #555; display: block; margin-bottom: 6px; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+    .path-row { display: flex; gap: 8px; align-items: stretch; }
+    .path-row input { margin-bottom: 0; }
+    .cover-grid { display: grid; grid-template-columns: 180px 1fr; gap: 16px; align-items: start; }
+    .cover { width: 100%; max-width: 180px; border-radius: 6px; border: 1px solid #ddd; cursor: zoom-in; background: #eee; }
+    .chapter-list { display: grid; gap: 8px; margin-top: 12px; }
+    .chapter-item { display: grid; grid-template-columns: 24px 56px 1fr; gap: 10px; align-items: center; padding: 8px; border: 1px solid #ddd; border-radius: 6px; background: #fff; }
+    .chapter-item input { width: auto; margin: 0; }
+    .chapter-cover { width: 56px; height: 74px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; cursor: zoom-in; background: #eee; }
+    .chapter-title { font-size: 13px; color: #333; }
+    .preview-img { max-width: min(86vw, 720px); max-height: 86vh; border-radius: 8px; background: #111; }
+    @media (max-width: 680px) {
+      .cover-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📚 JMComic 桌面下载器</h1>
+      <button class="settings-btn" onclick="openSettings()">⚙️</button>
+    </div>
+
+    <div class="card">
+      <input type="text" id="albumId" placeholder="本子ID，例如：350234">
+      <div class="btn-group">
+        <button onclick="viewAlbum()">🔍 查看详情</button>
+        <button onclick="downloadAlbum()">⬇️ 下载本子</button>
+      </div>
+      <div class="loading" id="loading">⏳ 处理中...</div>
+    </div>
+
+    <div class="card">
+      <textarea id="chapterId" placeholder="章节ID，可输入多个：350234, 350235 或每行一个" style="width:100%; min-height:72px; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px; margin-bottom:10px;"></textarea>
+      <button onclick="downloadChapter()" class="btn-secondary">📄 下载单个章节</button>
+      <button onclick="downloadManualChapters()" class="btn-secondary">📚 批量下载输入章节</button>
+    </div>
+
+    <div class="card">
+      <strong style="display: block; margin-bottom: 10px;">📋 操作日志</strong>
+      <div id="logs"></div>
+    </div>
+
+    <div class="card" id="result"></div>
+  </div>
+
+  <div class="modal-overlay" id="settingsModal" onclick="closeSettingsOnOverlay(event)">
+    <div class="modal">
+      <h2>⚙️ 设置</h2>
+      <label>下载保存目录</label>
+      <div class="path-row">
+        <input type="text" id="defaultSaveDir" placeholder="留空则使用程序默认目录">
+        <button class="btn-secondary" onclick="chooseSaveDir()">选择</button>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeSettings()">取消</button>
+        <button onclick="saveSettings()">💾 保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="coverPreview" onclick="closeCoverPreview(event)">
+    <img class="preview-img" id="coverPreviewImg" alt="封面预览">
+  </div>
+
+  <script>
+    let currentAlbum = null;
+
+    function log(message, type = 'info') {
+      const logs = document.getElementById('logs');
+      const time = new Date().toLocaleTimeString();
+      const colors = { info: 'log-info', error: 'log-error', success: 'log-success' };
+      logs.innerHTML += `<div class="log-entry ${colors[type]}">[${time}] ${message}</div>`;
+      logs.scrollTop = logs.scrollHeight;
+    }
+
+    function setLoading(show) {
+      document.getElementById('loading').style.display = show ? 'block' : 'none';
+      document.querySelectorAll('button').forEach(btn => btn.disabled = show);
+    }
+
+    function openSettings() {
+      document.getElementById('defaultSaveDir').value = localStorage.getItem('defaultSaveDir') || '';
+      document.getElementById('settingsModal').classList.add('open');
+    }
+
+    function closeSettings() {
+      document.getElementById('settingsModal').classList.remove('open');
+    }
+
+    function closeSettingsOnOverlay(e) {
+      if (e.target === document.getElementById('settingsModal')) closeSettings();
+    }
+
+    function saveSettings() {
+      const dir = document.getElementById('defaultSaveDir').value.trim();
+      localStorage.setItem('defaultSaveDir', dir);
+      closeSettings();
+      log(`默认保存目录已设置: ${dir || '(使用程序默认)'}`, 'success');
+    }
+
+    async function chooseSaveDir() {
+      try {
+        const dir = await window.__TAURI__.tauri.invoke('choose_save_dir');
+        if (dir) document.getElementById('defaultSaveDir').value = dir;
+      } catch (e) {
+        log(`选择目录失败: ${e}`, 'error');
+      }
+    }
+
+    function getSaveDir() {
+      return localStorage.getItem('defaultSaveDir') || null;
+    }
+
+    function openCoverPreview(url) {
+      if (!url) return;
+      document.getElementById('coverPreviewImg').src = url;
+      document.getElementById('coverPreview').classList.add('open');
+    }
+
+    function closeCoverPreview(e) {
+      if (e.target === document.getElementById('coverPreview') || e.target.id === 'coverPreviewImg') {
+        document.getElementById('coverPreview').classList.remove('open');
+      }
+    }
+
+    function selectedChapterIds() {
+      return Array.from(document.querySelectorAll('.chapter-check:checked')).map(el => el.value);
+    }
+
+    function renderAlbum(data) {
+      currentAlbum = data;
+      document.getElementById('result').innerHTML = `
+<div class="cover-grid">
+  <img class="cover" src="${data.cover_url || ''}" alt="本子封面" onclick="openCoverPreview('${data.cover_url || ''}')">
+  <div>
+    📖 标题: ${data.title}
+    🆔 ID: JM${data.id}
+    ✍️ 作者: ${data.author}
+    👀 观看: ${data.views}
+    ❤️ 点赞: ${data.likes}
+    💬 评论: ${data.comments}
+    📄 页数: ${data.pages}
+    🏷️ 标签: ${(data.tags || []).join(', ')}
+  </div>
+</div>
+
+<div style="margin-top:12px;">
+  <strong>📑 章节列表 (${data.chapters.length})</strong>
+  <button class="btn-secondary" onclick="downloadSelectedChapters()" style="margin-left:8px;">批量下载已选章节</button>
+  <div class="chapter-list">
+    ${data.chapters.map((c, i) => `
+      <label class="chapter-item">
+        <input class="chapter-check" type="checkbox" value="${c.id}">
+        <img class="chapter-cover" src="${c.cover_url || ''}" alt="章节封面" onclick="event.preventDefault(); openCoverPreview('${c.cover_url || ''}')">
+        <span class="chapter-title">${i + 1}. ${c.title} (ID: ${c.id})</span>
+      </label>
+    `).join('')}
+  </div>
+</div>`;
+    }
+
+    async function viewAlbum() {
+      const albumId = document.getElementById('albumId').value.trim();
+      if (!albumId) { alert('请输入本子ID'); return; }
+      log(`查看本子 ${albumId} 详情...`, 'info');
+      setLoading(true);
+      try {
+        const result = await window.__TAURI__.tauri.invoke('view_album', { albumId });
+        const data = JSON.parse(result);
+        if (data.error) {
+          document.getElementById('result').innerHTML = `❌ 错误: ${data.error}`;
+          log(`查看失败: ${data.error}`, 'error');
+        } else {
+          renderAlbum(data);
+          log(`查看成功: ${data.title}`, 'success');
+        }
+      } catch (e) {
+        document.getElementById('result').innerHTML = `❌ 错误: ${e}`;
+        log(`查看异常: ${e}`, 'error');
+      }
+      setLoading(false);
+    }
+
+    async function downloadAlbum() {
+      const albumId = document.getElementById('albumId').value.trim();
+      const saveDir = getSaveDir();
+      if (!albumId) { alert('请输入本子ID'); return; }
+      if (!confirm(`确定下载本子 ${albumId} 吗？`)) return;
+      log(`开始下载本子 ${albumId}${saveDir ? ' 到 ' + saveDir : ''}...`, 'info');
+      setLoading(true);
+      try {
+        const result = await window.__TAURI__.tauri.invoke('download_album', { albumId, saveDir });
+        if (result.success) {
+          document.getElementById('result').innerHTML = `✅ ${result.message}`;
+          log(`下载完成`, 'success');
+        } else {
+          document.getElementById('result').innerHTML = `❌ 下载失败:\n${result.message}`;
+          log(`下载失败: ${result.message}`, 'error');
+        }
+      } catch (e) {
+        document.getElementById('result').innerHTML = `❌ 错误: ${e}`;
+        log(`下载异常: ${e}`, 'error');
+      }
+      setLoading(false);
+    }
+
+    async function downloadChapter() {
+      const chapterId = document.getElementById('chapterId').value.trim();
+      const saveDir = getSaveDir();
+      if (!chapterId) { alert('请输入章节ID'); return; }
+      if (chapterId.split(/[\s,，]+/).filter(Boolean).length > 1) return downloadManualChapters();
+      if (!confirm(`确定下载章节 ${chapterId} 吗？`)) return;
+      log(`开始下载章节 ${chapterId}${saveDir ? ' 到 ' + saveDir : ''}...`, 'info');
+      setLoading(true);
+      try {
+        const result = await window.__TAURI__.tauri.invoke('download_chapter', { chapterId, saveDir });
+        if (result.success) {
+          document.getElementById('result').innerHTML = `✅ ${result.message}`;
+          log(`章节下载完成`, 'success');
+        } else {
+          document.getElementById('result').innerHTML = `❌ 下载失败:\n${result.message}`;
+          log(`章节下载失败: ${result.message}`, 'error');
+        }
+      } catch (e) {
+        document.getElementById('result').innerHTML = `❌ 错误: ${e}`;
+        log(`下载异常: ${e}`, 'error');
+      }
+      setLoading(false);
+    }
+
+    async function downloadChapters(chapterIds, label) {
+      const saveDir = getSaveDir();
+      if (!chapterIds || chapterIds.length === 0) { alert('请选择或输入章节ID'); return; }
+      if (!confirm(`确定下载 ${chapterIds.length} 个章节吗？`)) return;
+      log(`开始批量下载章节 ${label || chapterIds.join(', ')}${saveDir ? ' 到 ' + saveDir : ''}...`, 'info');
+      setLoading(true);
+      try {
+        const result = await window.__TAURI__.tauri.invoke('download_chapters', { chapterIds: chapterIds.join(','), saveDir });
+        if (result.success) {
+          document.getElementById('result').innerHTML = `✅ ${result.message}`;
+          log('批量下载完成', 'success');
+        } else {
+          document.getElementById('result').innerHTML = `❌ 批量下载失败:\n${result.message}`;
+          log(`批量下载失败: ${result.message}`, 'error');
+        }
+      } catch (e) {
+        document.getElementById('result').innerHTML = `❌ 错误: ${e}`;
+        log(`批量下载异常: ${e}`, 'error');
+      }
+      setLoading(false);
+    }
+
+    function downloadSelectedChapters() {
+      downloadChapters(selectedChapterIds(), '已选章节');
+    }
+
+    function downloadManualChapters() {
+      const ids = document.getElementById('chapterId').value.trim().split(/[\s,，]+/).filter(Boolean);
+      downloadChapters(ids, ids.join(', '));
+    }
+
+    log('应用已启动', 'success');
+  </script>
+</body>
+</html>

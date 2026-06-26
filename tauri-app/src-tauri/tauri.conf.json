@@ -1,0 +1,51 @@
+{
+  "build": {
+    "beforeDevCommand": "",
+    "beforeBuildCommand": "",
+    "withGlobalTauri": true,
+    "devPath": "../src",
+    "distDir": "../src"
+  },
+  "package": {
+    "productName": "JMComic桌面版",
+    "version": "0.1.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": false,
+      "shell": {
+        "all": false,
+        "open": true
+      },
+      "dialog": {
+        "all": true
+      }
+    },
+    "bundle": {
+      "active": true,
+      "identifier": "com.jmcomic.desktop",
+      "icon": [
+        "icons/icon.icns",
+        "icons/icon.png"
+      ],
+      "resources": [
+        "../../tauri-app/dist/jmcomic-bridge"
+      ],
+      "targets": "all"
+    },
+    "security": {
+      "csp": null
+    },
+    "windows": [
+      {
+        "fullscreen": false,
+        "resizable": true,
+        "title": "JMComic桌面版",
+        "width": 1000,
+        "height": 700,
+        "minWidth": 800,
+        "minHeight": 600
+      }
+    ]
+  }
+}
