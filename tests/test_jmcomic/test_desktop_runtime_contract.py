@@ -106,10 +106,15 @@ class TestDesktopRuntimeContract(TestCase):
         root = Path(__file__).parents[2]
         html = (root / 'tauri-app' / 'src' / 'index.html').read_text(encoding='utf-8')
 
-        self.assertIn('grid-template-columns: 200px minmax(0, 1fr);', html)
-        self.assertIn('padding: 14px;', html)
-        self.assertIn('height: 180px;', html)
-        self.assertIn('min-height: 200px;', html)
+        self.assertIn('grid-template-columns: 144px minmax(0, 1fr);', html)
+        self.assertIn('grid-template-columns: minmax(0, 1fr) 236px;', html)
+        self.assertIn('font-size: 13px;', html)
+        self.assertIn('min-height: 38px;', html)
+        self.assertIn('min-height: 72px;', html)
+        self.assertIn('height: 150px;', html)
+        self.assertIn('min-height: 140px;', html)
+        self.assertIn('@media (max-width: 860px)', html)
+        self.assertIn('grid-template-columns: minmax(0, 1fr) auto;', html)
 
     def test_view_and_download_logs_include_elapsed_seconds(self):
         root = Path(__file__).parents[2]
