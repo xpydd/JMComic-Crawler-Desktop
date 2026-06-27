@@ -10,7 +10,9 @@ class TestDesktopRuntimeContract(TestCase):
         resource = config['tauri']['bundle']['resources'][0]
         main_rs = (root / 'tauri-app' / 'src-tauri' / 'src' / 'main.rs').read_text(encoding='utf-8')
 
-        self.assertIn(resource, main_rs)
+        self.assertEqual(resource, '../../tauri-app/dist/jmcomic-bridge*')
+        self.assertIn('../../tauri-app/dist/jmcomic-bridge', main_rs)
+        self.assertIn('jmcomic-bridge.exe', main_rs)
 
     def test_choose_save_dir_persists_selection_immediately(self):
         root = Path(__file__).parents[2]

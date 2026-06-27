@@ -1,0 +1,63 @@
+name: Desktop Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-desktop:
+    name: Build ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            artifact: jmcomic-desktop-macos
+            bundle: dmg
+            bridge: jmcomic-bridge
+          - os: windows-latest
+            artifact: jmcomic-desktop-windows
+            bundle: msi
+            bridge: jmcomic-bridge.exe
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Python build dependencies
+        run: python -m pip install --upgrade pip pyinstaller -e .
+
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli --locked
+
+      - name: Build Python bridge
+        run: python -m PyInstaller --onefile --name jmcomic-bridge tauri-app/bridge.py --distpath tauri-app/dist --workpath tauri-app/build --specpath tauri-app
+
+      - name: Build Tauri bundle
+        working-directory: tauri-app/src-tauri
+        run: cargo tauri build --bundles ${{ matrix.bundle }}
+
+      - name: Upload macOS DMG
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: tauri-app/src-tauri/target/release/bundle/dmg/*.dmg
+
+      - name: Upload Windows MSI
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: tauri-app/src-tauri/target/release/bundle/msi/*.msi

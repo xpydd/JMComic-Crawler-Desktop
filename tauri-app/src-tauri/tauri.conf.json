@@ -29,7 +29,7 @@
         "icons/icon.png"
       ],
       "resources": [
-        "../../tauri-app/dist/jmcomic-bridge"
+        "../../tauri-app/dist/jmcomic-bridge*"
       ],
       "targets": "all"
     },

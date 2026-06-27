@@ -3,6 +3,10 @@
 use serde::{Deserialize, Serialize};
 use std::process::{Command, Output};
 
+#[cfg(target_os = "windows")]
+const BRIDGE_RESOURCE: &str = "../../tauri-app/dist/jmcomic-bridge.exe";
+
+#[cfg(not(target_os = "windows"))]
 const BRIDGE_RESOURCE: &str = "../../tauri-app/dist/jmcomic-bridge";
 
 #[derive(Serialize, Deserialize)]
