@@ -102,21 +102,8 @@
 
     .app-shell {
       display: grid;
-      grid-template-columns: 144px minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1fr);
       min-height: 100vh;
-    }
-
-    .sidebar {
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      padding: 10px;
-      border-right: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.84);
-      backdrop-filter: blur(12px);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
     }
 
     .brand {
@@ -148,43 +135,6 @@
       font-size: 12px;
     }
 
-    .nav-section {
-      display: grid;
-      gap: 6px;
-    }
-
-    .nav-label {
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-
-    .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      min-height: 32px;
-      padding: 0 8px;
-      border-radius: 6px;
-      color: var(--muted-strong);
-      text-decoration: none;
-    }
-
-    .nav-item.active {
-      background: var(--primary-soft);
-      color: var(--primary);
-      font-weight: 700;
-    }
-
-    .sidebar-footer {
-      margin-top: auto;
-      display: grid;
-      gap: 8px;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
     .shell-main {
       min-width: 0;
       padding: 10px;
@@ -196,6 +146,17 @@
       align-items: center;
       gap: 10px;
       margin-bottom: 8px;
+    }
+
+    .topbar-main {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .topbar-title {
+      min-width: 0;
     }
 
     .topbar h1 {
@@ -221,7 +182,7 @@
 
     .workspace-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 236px;
+      grid-template-columns: minmax(0, 1fr) 260px;
       gap: 10px;
       align-items: start;
     }
@@ -631,30 +592,7 @@
       box-shadow: var(--shadow);
     }
 
-    .mobile-header {
-      display: none;
-    }
-
-    @media (max-width: 860px) {
-      .app-shell {
-        grid-template-columns: 1fr;
-      }
-
-      .sidebar {
-        display: none;
-      }
-
-      .mobile-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 10px;
-      }
-
-      .desktop-settings {
-        display: none;
-      }
-
+    @media (max-width: 760px) {
       .workspace-grid {
         grid-template-columns: 1fr;
       }
@@ -721,65 +659,27 @@
 </head>
 <body>
   <div class="app-shell">
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="brand-mark" aria-hidden="true">JM</div>
-        <div>
-          <div class="brand-title">JMComic</div>
-          <div class="brand-subtitle">桌面下载器</div>
-        </div>
-      </div>
-
-      <nav class="nav-section" aria-label="主任务">
-        <div class="nav-label">工作区</div>
-        <a class="nav-item active" href="#albumId">
-          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5Z"/><path d="M8 7h6"/><path d="M8 11h7"/></svg>
-          本子查询
-        </a>
-        <a class="nav-item" href="#chapterId">
-          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8l4 4v14H8z"/><path d="M16 3v5h5"/><path d="M4 7v14h4"/></svg>
-          章节下载
-        </a>
-        <a class="nav-item" href="#logs">
-          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h10"/></svg>
-          运行日志
-        </a>
-      </nav>
-
-      <div class="sidebar-footer">
-        <button type="button" class="btn-secondary" onclick="openSettings()">
-          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.04.04a2 2 0 0 1-2.83 2.83l-.04-.04A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6V20a2 2 0 0 1-4 0v-.06a1.7 1.7 0 0 0-1-.6 1.7 1.7 0 0 0-1.88.34l-.04.04a2 2 0 1 1-2.83-2.83l.04-.04A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1H4a2 2 0 0 1 0-4h.06a1.7 1.7 0 0 0 .6-1 1.7 1.7 0 0 0-.34-1.88l-.04-.04A2 2 0 1 1 7.1 4.25l.04.04A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6V4a2 2 0 0 1 4 0v.06a1.7 1.7 0 0 0 1 .6 1.7 1.7 0 0 0 1.88-.34l.04-.04a2 2 0 1 1 2.83 2.83l-.04.04A1.7 1.7 0 0 0 19.4 9c.2.37.4.73.6 1H20a2 2 0 0 1 0 4h-.06a1.7 1.7 0 0 0-.54 1Z"/></svg>
-          设置保存路径
-        </button>
-        <span>本地运行，复用现有 jmcomic 桥接层。</span>
-      </div>
-    </aside>
-
     <main class="shell-main">
-      <div class="mobile-header">
-        <div class="brand">
-          <div class="brand-mark" aria-hidden="true">JM</div>
-          <div>
-            <div class="brand-title">JMComic</div>
-          <div class="brand-subtitle">桌面下载器</div>
-          </div>
-        </div>
-        <button type="button" class="settings-btn" onclick="openSettings()" aria-label="打开设置">
-          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.04.04a2 2 0 0 1-2.83 2.83l-.04-.04A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6V20a2 2 0 0 1-4 0v-.06a1.7 1.7 0 0 0-1-.6 1.7 1.7 0 0 0-1.88.34l-.04.04a2 2 0 1 1-2.83-2.83l.04-.04A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1H4a2 2 0 0 1 0-4h.06a1.7 1.7 0 0 0 .6-1 1.7 1.7 0 0 0-.34-1.88l-.04-.04A2 2 0 1 1 7.1 4.25l.04.04A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6V4a2 2 0 0 1 4 0v.06a1.7 1.7 0 0 0 1 .6 1.7 1.7 0 0 0 1.88-.34l.04-.04a2 2 0 1 1 2.83 2.83l-.04.04A1.7 1.7 0 0 0 19.4 9c.2.37.4.73.6 1H20a2 2 0 0 1 0 4h-.06a1.7 1.7 0 0 0-.54 1Z"/></svg>
-        </button>
-      </div>
-
       <header class="topbar">
-        <div>
-          <h1>下载工作台</h1>
-          <p>查询本子详情，选择章节，并把结果保存到本地目录。</p>
+        <div class="topbar-main">
+          <div class="brand topbar-brand">
+            <div class="brand-mark" aria-hidden="true">JM</div>
+            <div>
+              <div class="brand-title">JMComic</div>
+              <div class="brand-subtitle">桌面下载器</div>
+            </div>
+          </div>
+          <div class="topbar-title">
+            <h1>下载工作台</h1>
+            <p>查询本子详情，选择章节，并把结果保存到本地目录。</p>
+          </div>
         </div>
         <div class="topbar-actions">
           <div class="status-pill" id="statusPill">
             <span class="status-dot" aria-hidden="true"></span>
             <span id="statusText">待命</span>
           </div>
-          <button type="button" class="settings-btn desktop-settings" onclick="openSettings()" aria-label="打开设置">
+          <button type="button" class="settings-btn" onclick="openSettings()" aria-label="打开设置">
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.04.04a2 2 0 0 1-2.83 2.83l-.04-.04A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6V20a2 2 0 0 1-4 0v-.06a1.7 1.7 0 0 0-1-.6 1.7 1.7 0 0 0-1.88.34l-.04.04a2 2 0 1 1-2.83-2.83l.04-.04A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1H4a2 2 0 0 1 0-4h.06a1.7 1.7 0 0 0 .6-1 1.7 1.7 0 0 0-.34-1.88l-.04-.04A2 2 0 1 1 7.1 4.25l.04.04A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6V4a2 2 0 0 1 4 0v.06a1.7 1.7 0 0 0 1 .6 1.7 1.7 0 0 0 1.88-.34l.04-.04a2 2 0 1 1 2.83 2.83l-.04.04A1.7 1.7 0 0 0 19.4 9c.2.37.4.73.6 1H20a2 2 0 0 1 0 4h-.06a1.7 1.7 0 0 0-.54 1Z"/></svg>
           </button>
         </div>

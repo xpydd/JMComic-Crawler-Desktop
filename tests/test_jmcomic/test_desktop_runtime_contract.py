@@ -75,15 +75,20 @@ class TestDesktopRuntimeContract(TestCase):
         self.assertIn('if (isBusy) return false;', html)
         self.assertIn('if (!beginLoading()) return;', html)
 
-    def test_frontend_uses_sidebar_workspace_layout(self):
+    def test_frontend_uses_two_column_workspace_without_sidebar_menu(self):
         root = Path(__file__).parents[2]
         html = (root / 'tauri-app' / 'src' / 'index.html').read_text(encoding='utf-8')
 
         self.assertIn('class="app-shell"', html)
-        self.assertIn('class="sidebar"', html)
         self.assertIn('class="workspace-grid"', html)
         self.assertIn('class="side-panel"', html)
+        self.assertIn('class="brand topbar-brand"', html)
         self.assertIn('class="command-card primary-flow"', html)
+        self.assertIn('grid-template-columns: minmax(0, 1fr);', html)
+        self.assertNotIn('class="sidebar"', html)
+        self.assertNotIn('class="nav-section"', html)
+        self.assertNotIn('class="nav-item', html)
+        self.assertNotIn('本地运行，复用现有 jmcomic 桥接层。', html)
 
     def test_frontend_uses_accessible_svg_icons_not_emoji(self):
         root = Path(__file__).parents[2]
@@ -106,14 +111,14 @@ class TestDesktopRuntimeContract(TestCase):
         root = Path(__file__).parents[2]
         html = (root / 'tauri-app' / 'src' / 'index.html').read_text(encoding='utf-8')
 
-        self.assertIn('grid-template-columns: 144px minmax(0, 1fr);', html)
-        self.assertIn('grid-template-columns: minmax(0, 1fr) 236px;', html)
+        self.assertIn('grid-template-columns: minmax(0, 1fr);', html)
+        self.assertIn('grid-template-columns: minmax(0, 1fr) 260px;', html)
         self.assertIn('font-size: 13px;', html)
         self.assertIn('min-height: 38px;', html)
         self.assertIn('min-height: 72px;', html)
         self.assertIn('height: 150px;', html)
         self.assertIn('min-height: 140px;', html)
-        self.assertIn('@media (max-width: 860px)', html)
+        self.assertIn('@media (max-width: 760px)', html)
         self.assertIn('grid-template-columns: minmax(0, 1fr) auto;', html)
 
     def test_view_and_download_logs_include_elapsed_seconds(self):
