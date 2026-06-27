@@ -1014,6 +1014,10 @@
       return `${text.slice(0, max)}\n...（已省略 ${text.length - max} 个字符）`;
     }
 
+    function formatElapsedSeconds(startedAt) {
+      return Math.max(1, Math.ceil((Date.now() - startedAt) / 1000));
+    }
+
     function showResult(message, type = 'info') {
       const className = type === 'success' ? 'success' : type === 'error' ? 'error' : '';
       document.getElementById('result').innerHTML = `
@@ -1096,21 +1100,22 @@
       const albumId = document.getElementById('albumId').value.trim();
       if (!albumId) { alert('请输入本子ID'); return; }
       if (!beginLoading()) return;
+      const startedAt = Date.now();
       log(`查看本子 ${albumId} 详情...`, 'info');
       try {
         const result = await window.__TAURI__.tauri.invoke('view_album', { albumId });
         const data = JSON.parse(result);
         if (data.error) {
           showResult(data.error, 'error');
-          log(`查看失败: ${data.error}`, 'error');
+          log(`查看失败，耗时 ${formatElapsedSeconds(startedAt)} 秒: ${data.error}`, 'error');
           setStatus('查看失败', 'error');
         } else {
           renderAlbum(data);
-          log(`查看成功: ${data.title}`, 'success');
+          log(`查看成功，耗时 ${formatElapsedSeconds(startedAt)} 秒: ${data.title}`, 'success');
         }
       } catch (e) {
         showResult(String(e), 'error');
-        log(`查看异常: ${e}`, 'error');
+        log(`查看异常，耗时 ${formatElapsedSeconds(startedAt)} 秒: ${e}`, 'error');
         setStatus('查看异常', 'error');
       } finally {
         endLoading();
@@ -1122,21 +1127,22 @@
       const saveDir = getSaveDir();
       if (!albumId) { alert('请输入本子ID'); return; }
       if (!beginLoading()) return;
+      const startedAt = Date.now();
       try {
         if (shouldConfirmDownload(saveDir) && !confirm(`未设置保存路径，将默认下载到桌面。确定下载本子 ${albumId} 吗？`)) return;
         log(`开始下载本子 ${albumId}${saveDir ? ' 到 ' + saveDir : ' 到桌面'}...`, 'info');
         const result = await window.__TAURI__.tauri.invoke('download_album', { albumId, saveDir });
         if (result.success) {
           showResult(result.message, 'success');
-          log('下载完成', 'success');
+          log(`下载完成，耗时 ${formatElapsedSeconds(startedAt)} 秒`, 'success');
         } else {
           showResult(`下载失败:\n${result.message}`, 'error');
-          log(`下载失败: ${result.message}`, 'error');
+          log(`下载失败，耗时 ${formatElapsedSeconds(startedAt)} 秒: ${result.message}`, 'error');
           setStatus('下载失败', 'error');
         }
       } catch (e) {
         showResult(String(e), 'error');
-        log(`下载异常: ${e}`, 'error');
+        log(`下载异常，耗时 ${formatElapsedSeconds(startedAt)} 秒: ${e}`, 'error');
         setStatus('下载异常', 'error');
       } finally {
         endLoading();
@@ -1149,21 +1155,22 @@
       if (!chapterId) { alert('请输入章节ID'); return; }
       if (chapterId.split(/[\s,，]+/).filter(Boolean).length > 1) return downloadManualChapters();
       if (!beginLoading()) return;
+      const startedAt = Date.now();
       try {
         if (shouldConfirmDownload(saveDir) && !confirm(`未设置保存路径，将默认下载到桌面。确定下载章节 ${chapterId} 吗？`)) return;
         log(`开始下载章节 ${chapterId}${saveDir ? ' 到 ' + saveDir : ' 到桌面'}...`, 'info');
         const result = await window.__TAURI__.tauri.invoke('download_chapter', { chapterId, saveDir });
         if (result.success) {
           showResult(result.message, 'success');
-          log('章节下载完成', 'success');
+          log(`章节下载完成，耗时 ${formatElapsedSeconds(startedAt)} 秒`, 'success');
         } else {
           showResult(`下载失败:\n${result.message}`, 'error');
-          log(`章节下载失败: ${result.message}`, 'error');
+          log(`章节下载失败，耗时 ${formatElapsedSeconds(startedAt)} 秒: ${result.message}`, 'error');
           setStatus('章节失败', 'error');
         }
       } catch (e) {
         showResult(String(e), 'error');
-        log(`下载异常: ${e}`, 'error');
+        log(`下载异常，耗时 ${formatElapsedSeconds(startedAt)} 秒: ${e}`, 'error');
         setStatus('下载异常', 'error');
       } finally {
         endLoading();
@@ -1175,21 +1182,22 @@
       const ids = uniqueIds(chapterIds);
       if (ids.length === 0) { alert('请选择或输入章节ID'); return; }
       if (!beginLoading()) return;
+      const startedAt = Date.now();
       try {
         if (shouldConfirmDownload(saveDir) && !confirm(`未设置保存路径，将默认下载到桌面。确定下载 ${ids.length} 个章节吗？`)) return;
         log(`开始批量下载章节 ${label || ids.join(', ')}${saveDir ? ' 到 ' + saveDir : ' 到桌面'}...`, 'info');
         const result = await window.__TAURI__.tauri.invoke('download_chapters', { chapterIds: ids.join(','), saveDir });
         if (result.success) {
           showResult(result.message, 'success');
-          log('批量下载完成', 'success');
+          log(`批量下载完成，耗时 ${formatElapsedSeconds(startedAt)} 秒`, 'success');
         } else {
           showResult(`批量下载失败:\n${result.message}`, 'error');
-          log(`批量下载失败: ${result.message}`, 'error');
+          log(`批量下载失败，耗时 ${formatElapsedSeconds(startedAt)} 秒: ${result.message}`, 'error');
           setStatus('批量失败', 'error');
         }
       } catch (e) {
         showResult(String(e), 'error');
-        log(`批量下载异常: ${e}`, 'error');
+        log(`批量下载异常，耗时 ${formatElapsedSeconds(startedAt)} 秒: ${e}`, 'error');
         setStatus('批量异常', 'error');
       } finally {
         endLoading();

@@ -110,3 +110,13 @@ class TestDesktopRuntimeContract(TestCase):
         self.assertIn('padding: 14px;', html)
         self.assertIn('height: 180px;', html)
         self.assertIn('min-height: 200px;', html)
+
+    def test_view_and_download_logs_include_elapsed_seconds(self):
+        root = Path(__file__).parents[2]
+        html = (root / 'tauri-app' / 'src' / 'index.html').read_text(encoding='utf-8')
+
+        self.assertIn('function formatElapsedSeconds(startedAt)', html)
+        self.assertIn("const startedAt = Date.now();", html)
+        self.assertIn("${formatElapsedSeconds(startedAt)} 秒", html)
+        for phrase in ['查看成功', '查看失败', '下载完成', '下载失败', '章节下载完成', '章节下载失败', '批量下载完成', '批量下载失败']:
+            self.assertIn(phrase, html)
