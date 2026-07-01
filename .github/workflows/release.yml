@@ -10,6 +10,7 @@ jobs:
   release:
     name: Publish `jmcomic` to PYPI
     runs-on: ubuntu-latest
+    if: ${{ !startsWith(github.event.release.tag_name, 'desktop-v') }}
     steps:
       - uses: actions/checkout@v4
 
