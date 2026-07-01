@@ -7,7 +7,7 @@
     "distDir": "../src"
   },
   "package": {
-    "productName": "JMComic桌面版",
+    "productName": "JMComic Desktop",
     "version": "0.1.0"
   },
   "tauri": {
